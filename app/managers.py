@@ -17,19 +17,18 @@ class ActorManager:
         )
         self._connection.commit()
 
-    def all(self) -> list:
+    def all(self) -> list[Actor]:
         actor_cursor = self._connection.execute(
-            f"SELECT * FROM {self.table_name}"
+            f"SELECT id, first_name, last_name FROM {self.table_name}"
         )
         return [Actor(*row) for row in actor_cursor]
 
     def update(self, pk: int, new_first_name: str, new_last_name: str) -> None:
-        self._connection.execute(
-            f"UPDATE {self.table_name} SET first_name = ?, "
-            f"last_name = ? WHERE id = ?",
-            (new_first_name, new_last_name, pk)
-        )
-        self._connection.commit()
+        with self._connection:
+            self._connection.execute(
+                f"UPDATE {self.table_name} SET first_name = ?, last_name = ? WHERE id = ?",
+                (new_first_name, new_last_name, pk)
+            )
 
     def delete(self, pk: int) -> None:
         self._connection.execute(
